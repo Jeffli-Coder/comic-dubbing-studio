@@ -1,0 +1,44 @@
+# Git / 编辑器
+.git
+.github
+.gitignore
+.gitattributes
+.editorconfig
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Python 环境与缓存
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+*.egg-info
+
+# 密钥
+.env
+.env.*
+
+# 本地数据与版权素材（不进入镜像）
+data
+legacy
+Vol_01_pages
+*.xlsx
+test_dialogue_script.json
+*.log
+
+# 开发/文档（运行镜像不需要）
+tests
+docs
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+THIRD_PARTY_NOTICES.md
+
+# Compose
+docker-compose*.yml

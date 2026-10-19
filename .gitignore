@@ -1,0 +1,39 @@
+# ── 密钥（绝不提交！）──────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── 运行时数据（书籍/音频/缓存，本地生成）──────────
+data/
+
+# ── 测试素材（漫画版权 + 体积）─────────────────────
+Vol_01_pages/
+qwen-audio-3.0-tts-plus基础音色.xlsx
+test_dialogue_script.json
+
+# ── 退役代码（历史遗留）────────────────────────────
+legacy/
+
+# ── 临时/诊断产物 ──────────────────────────────────
+shot_*.png
+*.log
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+docker-compose.override.yml
+
+# ── Python ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ── 编辑器/系统 ────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

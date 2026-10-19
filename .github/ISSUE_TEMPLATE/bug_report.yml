@@ -1,0 +1,52 @@
+name: Bug report
+description: 报告一个可复现的问题
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先搜索已有 Issue，并**删除日志/截图中的 API Key、个人路径和版权素材**。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 发生了什么？期望的行为是什么？
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 运行 MOCK_MODE=1 docker compose up
+        2. 上传 2 张 PNG
+        3. 翻到第 2 页
+        4. 看到 ...
+    validations:
+      required: true
+  - type: textarea
+    id: health
+    attributes:
+      label: /api/health 返回
+      description: 请先确认其中不含任何密钥信息。
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / 启动方式
+      placeholder: "v2.1.0 / Docker Compose / 原生 Python"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      placeholder: "Windows 11 / macOS 15 arm64 / Ubuntu 24.04"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: 服务端完整报错（docker logs / 终端输出），注意脱敏。
+      render: shell
