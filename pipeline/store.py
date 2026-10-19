@@ -16,6 +16,7 @@ import re
 import shutil
 import tempfile
 import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -29,6 +30,9 @@ _BOOK_ID_RE = re.compile(r"^[0-9a-f]{12}$")
 
 # meta 的读-改-写需要串行化：流水线线程与 API 路由会并发写同一本书
 _meta_lock = threading.RLock()
+# Windows 上 os.replace 可能因目标文件被短暂占用而 PermissionError；
+# 进程内先串行化，再做少量重试。
+_write_lock = threading.Lock()
 
 ACTIVE_STATUSES = {"queued", "ocr", "voice_pick", "tts", "concat", "resynth"}
 
@@ -76,20 +80,32 @@ def read_json(path: Path, default=None):
 
 
 def write_json_atomic(path: Path, data) -> None:
-    """临时文件 + os.replace，避免读到半截 JSON；mkstemp 避免并发同名 tmp 冲突。"""
+    """临时文件 + os.replace，避免读到半截 JSON；mkstemp 避免并发同名 tmp 冲突。
+
+    Windows 上目标文件可能被杀毒/索引程序短暂占用，os.replace 会抛
+    PermissionError；这里先做进程内串行化，再带退避重试几次。
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, path)
-    finally:
+    with _write_lock:
+        fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
         try:
-            os.unlink(tmp)
-        except OSError:
-            pass
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            for attempt in range(5):
+                try:
+                    os.replace(tmp, path)
+                    break
+                except PermissionError:
+                    if attempt == 4:
+                        raise
+                    time.sleep(0.05 * (attempt + 1))
+        finally:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
 
 
 def read_meta(book_id: str) -> dict:
