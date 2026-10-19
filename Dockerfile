@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.14-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 # 构建参数：国内网络可通过 --build-arg PIP_INDEX_URL=... 使用镜像源
 ARG APP_UID=10001
