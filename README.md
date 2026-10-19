@@ -1,7 +1,7 @@
 # 🎧 漫画配音工坊 · Comic Dubbing Studio
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-[![Docker](https://github.com/OWNER/REPO/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/docker-publish.yml)
+[![CI](https://github.com/Jeffli-Coder/comic-dubbing-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeffli-Coder/comic-dubbing-studio/actions/workflows/ci.yml)
+[![Docker](https://github.com/Jeffli-Coder/comic-dubbing-studio/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/Jeffli-Coder/comic-dubbing-studio/actions/workflows/docker-publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-2496ED?logo=docker)](docs/DEPLOYMENT.md)
@@ -9,7 +9,6 @@
 > 上传漫画页图片（或 PDF），自动完成 **OCR 识别台词 → LLM 整理剧本与选角 → 多音色语音合成**，
 > 产出可翻页收听、逐句高亮、随时换音的沉浸式「听书」体验。
 
-<!-- 发布前请把上方徽章与文中的 OWNER/REPO 替换为你的 GitHub 用户名与仓库名。 -->
 
 **English**: A self-hosted, cross-platform comic dubbing studio. Upload manga pages
 or PDFs; a multimodal pipeline (vision OCR → LLM script/voice casting → multi-voice TTS)
@@ -36,8 +35,8 @@ Deploy with one `docker compose up`.
 ## 🚀 30 秒体验（无需 API Key）
 
 ```bash
-git clone <your-repo-url>
-cd comic_dubbing_agent
+git clone https://github.com/Jeffli-Coder/comic-dubbing-studio.git
+cd comic-dubbing-studio
 MOCK_MODE=1 docker compose up --build
 ```
 
@@ -89,7 +88,7 @@ docker compose up -d --build
 - 默认只绑定 `127.0.0.1:8080`；远程访问：`BIND_ADDR=0.0.0.0 docker compose up -d`
   （**应用无鉴权，公网请加反向代理认证**）。
 - 国内加速：`PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple docker compose build`。
-- 多架构镜像：`ghcr.io/<owner>/<repo>:latest`（linux/amd64、linux/arm64）。
+- 多架构镜像：`ghcr.io/jeffli-coder/comic-dubbing-studio:latest`（linux/amd64、linux/arm64）。
 
 完整部署、备份、反向代理与排障见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
 

@@ -7,8 +7,8 @@
 ### 1. 零配置体验（无需任何 API Key）
 
 ```bash
-git clone <your-repo-url>
-cd comic_dubbing_agent
+git clone https://github.com/Jeffli-Coder/comic-dubbing-studio.git
+cd comic-dubbing-studio
 MOCK_MODE=1 docker compose up --build
 ```
 
@@ -38,12 +38,12 @@ docker compose build
 或直接使用已发布镜像：
 
 ```bash
-docker pull ghcr.io/<owner>/<repo>:latest
+docker pull ghcr.io/jeffli-coder/comic-dubbing-studio:latest
 docker run -d --name comic-dubbing \
   -p 127.0.0.1:8080:8080 \
   --env-file .env \
   -v comic_data:/data \
-  ghcr.io/<owner>/<repo>:latest
+  ghcr.io/jeffli-coder/comic-dubbing-studio:latest
 ```
 
 ### 4. 远程访问
