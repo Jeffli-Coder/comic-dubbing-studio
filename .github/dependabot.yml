@@ -18,3 +18,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # 基础镜像的大版本升级需要人工评估（3.14 尚未纳入 CI 测试矩阵）
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
