@@ -1,9 +1,10 @@
 """
-DeepSeek LLM Provider — OpenAI 兼容协议 + chat / chat_json（三层 JSON 容错解析）。
+OpenAI 兼容 LLM Provider — 默认用于 DeepSeek，也可指向任意 OpenAI 兼容网关
+（阿里云百炼、vLLM、Ollama、OneAPI 等），通过 LLM_PROVIDER=openai 配置。
 
-思考模式（thinking）：deepseek-v4 系为推理模型，思维链会占用输出 token 预算。
-本项目的合并/选音都是结构化 JSON 任务，默认关闭思考（DEEPSEEK_THINKING=1 可开）。
-client 参数可注入 Mock（单元测试用）。
+思考模式（thinking）是供应商相关参数：DeepSeek 用 {"thinking": ...}，
+Qwen 用 {"enable_thinking": ...}。为避免把 A 厂商字段发给 B 厂商，
+本类默认不发送任何额外字段；需要时用 LLM_EXTRA_BODY 传 JSON 覆盖。
 """
 import json
 import re
@@ -25,24 +26,36 @@ class DeepSeekLLM(BaseLLM):
         client: Optional[OpenAI] = None,
         thinking: bool = False,
         max_tokens: int = 32768,
+        extra_body: Optional[dict] = None,
+        name: Optional[str] = None,
     ):
         self.client = client or OpenAI(api_key=api_key, base_url=base_url,
                                        timeout=300.0, max_retries=2)
         self.model = model
         self.thinking = thinking
         self.max_tokens = max_tokens
+        self.extra_body = extra_body
+        if name:
+            self.name = name
 
     def chat(self, system_prompt: str, user_prompt: str, temperature: float = 0.3) -> str:
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
+        kwargs = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=temperature,
-            max_tokens=self.max_tokens,
-            extra_body={"thinking": {"type": "enabled" if self.thinking else "disabled"}},
-        )
+            "temperature": temperature,
+            "max_tokens": self.max_tokens,
+        }
+        extra = self.extra_body
+        # 兼容直接构造本类且开启思考的调用方
+        if extra is None and self.thinking:
+            extra = {"thinking": {"type": "enabled"}}
+        if extra is not None:
+            kwargs["extra_body"] = extra
+
+        resp = self.client.chat.completions.create(**kwargs)
         choice = resp.choices[0]
         content = choice.message.content or ""
         if choice.finish_reason == "length":

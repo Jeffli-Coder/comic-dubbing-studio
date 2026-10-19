@@ -13,7 +13,7 @@
 | `MOCK_MODE` | `0` | `1` 时强制使用内置 Mock（模拟 OCR/LLM + 静音 WAV），无需任何 Key 或 ffmpeg |
 | `TTS_PROVIDER` | `qwen` | `qwen` / `fish` / `mock` |
 | `VISION_PROVIDER` | `qwen` | `qwen` / `mock` |
-| `LLM_PROVIDER` | `deepseek` | `deepseek` / `mock` |
+| `LLM_PROVIDER` | `deepseek` | `deepseek` / `openai` / `mock` |
 | `QWEN_TTS_ENABLED` | `0` | 设为 `1` 才启用真实 Qwen TTS |
 | `QWEN_VISION_ENABLED` | `0` | 设为 `1` 才启用真实 Qwen 视觉 OCR |
 
@@ -36,6 +36,22 @@
 | `QWEN_VISION_MODEL` | `qwen3.6-flash` | 视觉模型 |
 | `QWEN_VISION_THINKING` | `0` | `1` 开启思考（OCR 建议关闭，显著更快） |
 | `FISH_AUDIO_API_KEY` | — | 可选，`TTS_PROVIDER=fish` 时使用 |
+
+### 使用任意 OpenAI 兼容 LLM
+
+把 `LLM_PROVIDER` 设为 `openai`，然后配置下面三项即可接阿里云百炼、
+vLLM、Ollama、OneAPI 等兼容网关：
+
+| 变量 | 默认 | 说明 |
+|---|---|---|
+| `LLM_API_KEY` | — | 网关/服务 Key |
+| `LLM_BASE_URL` | — | OpenAI 兼容地址，如 `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` |
+| `LLM_MODEL` | — | 该网关可用的模型名（兼容旧变量 `LLM_MODEL_ID`） |
+| `LLM_MAX_TOKENS` | `32768` | 输出上限 |
+| `LLM_EXTRA_BODY` | — | 额外请求体 JSON，如 `{"enable_thinking": false}`；不填则不发厂商专属字段 |
+
+> `deepseek` 模式会保留 DeepSeek 的 `thinking` 开关；`openai` 模式默认不发送
+> 任何厂商专属字段，避免把 DeepSeek 参数发给阿里云等其他网关。
 
 ## 服务与上传
 

@@ -85,26 +85,60 @@ def get_vision() -> BaseVision:
 
 @lru_cache(maxsize=1)
 def get_llm() -> BaseLLM:
-    """LLM_PROVIDER: deepseek | mock；缺 key 降级 MockLLM。"""
+    """LLM_PROVIDER: deepseek | openai | mock；缺配置降级 MockLLM。
+
+    - deepseek：使用 DEEPSEEK_*（默认官方地址，也可指向兼容网关）
+    - openai  ：使用 LLM_API_KEY / LLM_BASE_URL / LLM_MODEL，可接任意
+                OpenAI 兼容服务（阿里云百炼、vLLM、Ollama、OneAPI 等）
+    """
     if settings.mock_mode or settings.llm_provider == "mock":
         return MockLLM()
 
-    if settings.llm_provider == "deepseek":
-        if not settings.deepseek_api_key:
-            _degrade("llm", "缺少 DEEPSEEK_API_KEY")
-        else:
-            try:
-                from providers.deepseek_provider import DeepSeekLLM
-                return DeepSeekLLM(
-                    settings.deepseek_api_key, settings.deepseek_base_url, settings.deepseek_model,
-                    thinking=settings.deepseek_thinking, max_tokens=settings.deepseek_max_tokens,
-                )
-            except Exception as e:
-                _degrade("llm", f"DeepSeekLLM 不可用: {e}")
+    provider = settings.llm_provider
+    if provider == "deepseek":
+        api_key = settings.deepseek_api_key
+        base_url = settings.deepseek_base_url
+        model = settings.deepseek_model
+        thinking = settings.deepseek_thinking
+        # 保持 DeepSeek 原有行为：显式关闭/开启思考；
+        # LLM_EXTRA_BODY 可覆盖（包括用 {} 表示完全不发送额外字段）
+        extra_body = settings.llm_extra_body
+        if extra_body is None:
+            extra_body = {"thinking": {"type": "enabled" if thinking else "disabled"}}
+        max_tokens = settings.deepseek_max_tokens
+    elif provider in ("openai", "compat", "openai_compatible"):
+        api_key = settings.llm_api_key
+        base_url = settings.llm_base_url
+        model = settings.llm_model
+        thinking = False
+        # 通用网关默认不加任何厂商专属字段；需要时用 LLM_EXTRA_BODY 指定
+        extra_body = settings.llm_extra_body
+        max_tokens = settings.llm_max_tokens
+        provider = "openai"
     else:
         _degrade("llm", f"未知 LLM_PROVIDER={settings.llm_provider!r}，默认 Mock")
+        return MockLLM()
 
-    return MockLLM()
+    missing = []
+    if not api_key:
+        missing.append("DEEPSEEK_API_KEY" if provider == "deepseek" else "LLM_API_KEY")
+    if not base_url:
+        missing.append("LLM_BASE_URL")
+    if not model:
+        missing.append("LLM_MODEL")
+    if missing:
+        _degrade("llm", "缺少 " + " / ".join(missing))
+        return MockLLM()
+
+    try:
+        from providers.deepseek_provider import DeepSeekLLM
+        return DeepSeekLLM(
+            api_key, base_url, model, thinking=thinking,
+            max_tokens=max_tokens, extra_body=extra_body, name=provider,
+        )
+    except Exception as e:
+        _degrade("llm", f"{provider} LLM 不可用: {e}")
+        return MockLLM()
 
 
 def reset_providers() -> None:

@@ -80,3 +80,62 @@ def test_qwen_tts_rejects_empty_text_and_audio(monkeypatch):
         tts.synthesize("   ", "voice")
     with pytest.raises(RuntimeError):
         tts.synthesize("你好", "voice")
+
+
+class _FakeCompletions:
+    def __init__(self, captured):
+        self.captured = captured
+
+    def create(self, **kwargs):
+        from types import SimpleNamespace
+        self.captured.update(kwargs)
+        return SimpleNamespace(choices=[SimpleNamespace(
+            message=SimpleNamespace(content='{"ok": true}'),
+            finish_reason="stop",
+        )])
+
+
+class _FakeClient:
+    def __init__(self, captured):
+        from types import SimpleNamespace
+        self.chat = SimpleNamespace(completions=_FakeCompletions(captured))
+
+
+def test_openai_compatible_llm_does_not_send_vendor_specific_body_by_default():
+    from providers.deepseek_provider import DeepSeekLLM
+
+    captured = {}
+    llm = DeepSeekLLM("key", "https://example.com/v1", "some-model",
+                      client=_FakeClient(captured))
+    llm.chat("system", "user")
+    assert "extra_body" not in captured
+
+
+def test_openai_compatible_llm_forwards_extra_body():
+    from providers.deepseek_provider import DeepSeekLLM
+
+    captured = {}
+    llm = DeepSeekLLM("key", "https://example.com/v1", "some-model",
+                      client=_FakeClient(captured),
+                      extra_body={"enable_thinking": False})
+    llm.chat("system", "user")
+    assert captured["extra_body"] == {"enable_thinking": False}
+
+
+def test_get_llm_supports_openai_provider(monkeypatch):
+    from config import settings
+    from providers import get_llm, reset_providers
+
+    monkeypatch.setattr(settings, "mock_mode", False)
+    monkeypatch.setattr(settings, "llm_provider", "openai")
+    monkeypatch.setattr(settings, "llm_api_key", "key")
+    monkeypatch.setattr(settings, "llm_base_url", "https://example.com/v1")
+    monkeypatch.setattr(settings, "llm_model", "some-model")
+
+    reset_providers()
+    try:
+        llm = get_llm()
+        assert llm.name == "openai"
+        assert llm.model == "some-model"
+    finally:
+        reset_providers()

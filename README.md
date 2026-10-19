@@ -119,7 +119,7 @@ python server.py                    # http://127.0.0.1:8080
 | `QWEN_BASE_URL` | — | TTS WebSocket 地址（填 REST 地址会自动推导） |
 | `QWEN_VISION_BASE_URL` | — | 视觉 OCR 的 OpenAI 兼容地址 |
 | `QWEN_TTS_ENABLED` / `QWEN_VISION_ENABLED` | `0` | 真实接口开关 |
-| `TTS_PROVIDER` / `VISION_PROVIDER` / `LLM_PROVIDER` | qwen / qwen / deepseek | `mock` 可单独关闭某类能力 |
+| `TTS_PROVIDER` / `VISION_PROVIDER` / `LLM_PROVIDER` | qwen / qwen / deepseek | `mock` 可单独关闭某类能力；`LLM_PROVIDER=openai` 可接任意 OpenAI 兼容网关 |
 | `HOST` / `PORT` | `127.0.0.1` / `8080` | 监听地址 |
 | `DATA_DIR` | `./data` | 数据目录（Docker 为 `/data`） |
 | `MAX_UPLOAD_MB` / `MAX_UPLOAD_FILES` | `256` / `500` | 上传限制 |

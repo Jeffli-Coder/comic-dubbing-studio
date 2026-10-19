@@ -1,6 +1,7 @@
 """
 集中配置 — 读取 .env；50 种千问音色清单；Provider 开关与路径常量
 """
+import json
 import os
 from pathlib import Path
 
@@ -32,6 +33,18 @@ def _env_int(name: str, default: int) -> int:
         return int(raw) if raw not in (None, "") else default
     except ValueError:
         return default
+
+
+def _env_json(name: str):
+    """解析 JSON 对象型环境变量（如 LLM_EXTRA_BODY）；非法值返回 None。"""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+        return value if isinstance(value, dict) else None
+    except json.JSONDecodeError:
+        return None
 
 # ═══════════════════════════════════════════════════════════
 # 50 种千问音色（从 qwen-audio-3.0-tts-plus基础音色.xlsx 597 个中精选）
@@ -122,6 +135,15 @@ class Settings:
 
         # 演示模式：无 Key / 无 ffmpeg 即可跑通整条链路
         self.mock_mode = _env_bool("MOCK_MODE")
+
+        # 通用 OpenAI 兼容 LLM（LLM_PROVIDER=openai 时使用）：
+        # 可指向 DeepSeek、阿里云百炼、vLLM/Ollama 等任意兼容网关。
+        self.llm_api_key = os.getenv("LLM_API_KEY", "")
+        self.llm_base_url = os.getenv("LLM_BASE_URL", "")
+        self.llm_model = os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_ID", "")
+        self.llm_max_tokens = _env_int("LLM_MAX_TOKENS", 32768)
+        # 额外请求体，JSON 对象。例：{"enable_thinking": false}
+        self.llm_extra_body = _env_json("LLM_EXTRA_BODY")
 
         # 开关：qwen 系 Provider 未配置时自动降级 Mock
         self.tts_provider = os.getenv("TTS_PROVIDER", "qwen")
